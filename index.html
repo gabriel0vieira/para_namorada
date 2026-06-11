@@ -1,0 +1,1705 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ECHO SYSTEM v2.1 — RECOVERY MODE</title>
+<!--
+  ╔══════════════════════════════════════════════════════════╗
+  ║          P R O J E C T   E C H O   v2.1.0                ║
+  ║          Memory Recovery & Reconstruction Engine         ║
+  ╠══════════════════════════════════════════════════════════╣
+  ║  STATUS: CORRUPTED                                       ║
+  ║  SECTORS: 847 / 2048 recoverable                         ║
+  ║  EMOTIONAL_RESIDUE: HIGH                                 ║
+  ╠══════════════════════════════════════════════════════════╣
+  ║                                                          ║
+  ║  >> PISTA #1 <<                                          ║
+  ║  A senha do sistema é o nome do jogo que nos fez         ║
+  ║  perceber que algumas coisas só funcionam juntos.        ║
+  ║  Um jogo sobre dois. Sobre cooperação. Sobre amor.       ║
+  ║                                                          ║
+  ║  FORMAT: [nome do jogo, sem espaços, minúsculas]         ║
+  ║  HINT: "It Takes ___"                                    ║
+  ║                                                          ║
+  ╚══════════════════════════════════════════════════════════╝
+ 
+  Psst. Você está olhando no lugar certo.
+  Boa sorte, detetive. 🖤
+-->
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=VT323&family=Courier+Prime:ital,wght@0,400;0,700;1,400&display=swap');
+ 
+  :root {
+    --green: #00ff41;
+    --green-dim: #00a82a;
+    --green-glow: rgba(0,255,65,0.4);
+    --cyan: #00eeff;
+    --red: #ff2244;
+    --amber: #ffaa00;
+    --bg: #000a00;
+    --bg2: #000d00;
+    --panel: rgba(0,20,0,0.85);
+    --border: rgba(0,255,65,0.25);
+  }
+ 
+  * { margin:0; padding:0; box-sizing:border-box; }
+ 
+  body {
+    background: var(--bg);
+    color: var(--green);
+    font-family: 'Share Tech Mono', monospace;
+    min-height: 100vh;
+    overflow-x: hidden;
+    cursor: crosshair;
+  }
+ 
+  /* SCANLINES */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.15) 2px,
+      rgba(0,0,0,0.15) 4px
+    );
+    pointer-events: none;
+    z-index: 9999;
+  }
+ 
+  /* NOISE */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    opacity: 0.03;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 9998;
+    animation: noiseAnim 0.5s steps(2) infinite;
+  }
+ 
+  @keyframes noiseAnim { to { background-position: 100px 100px; } }
+ 
+  /* SCREENS */
+  .screen { display:none; min-height:100vh; padding:20px; }
+  .screen.active { display:flex; flex-direction:column; }
+ 
+  /* ═══════════════ BOOT SCREEN ═══════════════ */
+  #boot {
+    align-items: center;
+    justify-content: center;
+    background: var(--bg);
+  }
+ 
+  .boot-container {
+    max-width: 700px;
+    width: 100%;
+    text-align: left;
+  }
+ 
+  .ascii-logo {
+    font-family: 'VT323', monospace;
+    font-size: 13px;
+    line-height: 1.1;
+    color: var(--green);
+    text-shadow: 0 0 10px var(--green-glow);
+    margin-bottom: 24px;
+    white-space: pre;
+    overflow: hidden;
+  }
+ 
+  .boot-line {
+    font-size: 13px;
+    margin: 3px 0;
+    opacity: 0;
+    animation: fadeInLine 0.1s forwards;
+  }
+ 
+  .boot-line.ok { color: var(--green); }
+  .boot-line.warn { color: var(--amber); }
+  .boot-line.err { color: var(--red); }
+  .boot-line.info { color: var(--cyan); }
+ 
+  @keyframes fadeInLine { to { opacity: 1; } }
+ 
+  .blink { animation: blink 1s step-end infinite; }
+  @keyframes blink { 50% { opacity: 0; } }
+ 
+  /* ═══════════════ AUTH SCREEN ═══════════════ */
+  #auth {
+    align-items: center;
+    justify-content: center;
+  }
+ 
+  .auth-box {
+    border: 1px solid var(--border);
+    padding: 40px;
+    max-width: 500px;
+    width: 100%;
+    background: var(--panel);
+    box-shadow: 0 0 40px var(--green-glow), inset 0 0 40px rgba(0,255,65,0.03);
+    position: relative;
+  }
+ 
+  .auth-box::before {
+    content: 'ECHO_SYSTEM_v2.1 — SECURE_AUTH';
+    position: absolute;
+    top: -12px;
+    left: 20px;
+    background: var(--bg);
+    padding: 0 10px;
+    font-size: 11px;
+    color: var(--green-dim);
+    letter-spacing: 2px;
+  }
+ 
+  .auth-title {
+    font-family: 'VT323', monospace;
+    font-size: 36px;
+    letter-spacing: 6px;
+    text-align: center;
+    margin-bottom: 8px;
+    text-shadow: 0 0 20px var(--green-glow);
+  }
+ 
+  .auth-subtitle {
+    font-size: 11px;
+    color: var(--green-dim);
+    text-align: center;
+    letter-spacing: 3px;
+    margin-bottom: 32px;
+  }
+ 
+  .auth-field {
+    margin-bottom: 16px;
+  }
+ 
+  .auth-field label {
+    display: block;
+    font-size: 11px;
+    letter-spacing: 2px;
+    color: var(--green-dim);
+    margin-bottom: 6px;
+  }
+ 
+  .auth-field input {
+    width: 100%;
+    background: rgba(0,255,65,0.05);
+    border: 1px solid var(--border);
+    color: var(--green);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 15px;
+    padding: 10px 14px;
+    outline: none;
+    letter-spacing: 3px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+ 
+  .auth-field input:focus {
+    border-color: var(--green);
+    box-shadow: 0 0 12px var(--green-glow);
+  }
+ 
+  .auth-btn {
+    width: 100%;
+    background: transparent;
+    border: 1px solid var(--green);
+    color: var(--green);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 14px;
+    letter-spacing: 4px;
+    padding: 12px;
+    cursor: pointer;
+    margin-top: 8px;
+    transition: all 0.2s;
+    text-transform: uppercase;
+  }
+ 
+  .auth-btn:hover {
+    background: rgba(0,255,65,0.1);
+    box-shadow: 0 0 20px var(--green-glow);
+  }
+ 
+  .auth-error {
+    color: var(--red);
+    font-size: 12px;
+    text-align: center;
+    margin-top: 12px;
+    min-height: 18px;
+    letter-spacing: 2px;
+  }
+ 
+  .auth-hint {
+    font-size: 10px;
+    color: rgba(0,255,65,0.3);
+    text-align: center;
+    margin-top: 20px;
+    letter-spacing: 1px;
+  }
+ 
+  /* ═══════════════ MAIN TERMINAL ═══════════════ */
+  #terminal {
+    flex-direction: row;
+    padding: 0;
+    align-items: stretch;
+  }
+ 
+  .sidebar {
+    width: 240px;
+    border-right: 1px solid var(--border);
+    padding: 20px 16px;
+    flex-shrink: 0;
+    background: rgba(0,8,0,0.6);
+    display: flex;
+    flex-direction: column;
+  }
+ 
+  .sidebar-logo {
+    font-family: 'VT323', monospace;
+    font-size: 22px;
+    letter-spacing: 4px;
+    color: var(--green);
+    text-shadow: 0 0 10px var(--green-glow);
+    margin-bottom: 4px;
+  }
+ 
+  .sidebar-ver {
+    font-size: 10px;
+    color: var(--green-dim);
+    letter-spacing: 2px;
+    margin-bottom: 24px;
+  }
+ 
+  .nav-label {
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: var(--green-dim);
+    margin-bottom: 8px;
+    margin-top: 4px;
+  }
+ 
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px;
+    font-size: 12px;
+    letter-spacing: 1px;
+    cursor: pointer;
+    border: 1px solid transparent;
+    margin-bottom: 2px;
+    transition: all 0.2s;
+    color: var(--green-dim);
+    position: relative;
+  }
+ 
+  .nav-item:hover, .nav-item.active {
+    color: var(--green);
+    border-color: var(--border);
+    background: rgba(0,255,65,0.05);
+    text-shadow: 0 0 8px var(--green-glow);
+  }
+ 
+  .nav-item .nav-status {
+    margin-left: auto;
+    font-size: 10px;
+  }
+ 
+  .nav-item.locked { color: rgba(0,255,65,0.2); cursor: not-allowed; }
+  .nav-item.locked:hover { color: rgba(0,255,65,0.2); background: transparent; border-color: transparent; }
+ 
+  .status-bar {
+    margin-top: auto;
+    border-top: 1px solid var(--border);
+    padding-top: 16px;
+  }
+ 
+  .status-line {
+    font-size: 10px;
+    color: var(--green-dim);
+    margin-bottom: 4px;
+    letter-spacing: 1px;
+  }
+ 
+  .status-progress {
+    height: 3px;
+    background: rgba(0,255,65,0.1);
+    margin-top: 6px;
+    position: relative;
+    overflow: hidden;
+  }
+ 
+  .status-fill {
+    height: 100%;
+    background: var(--green);
+    box-shadow: 0 0 6px var(--green-glow);
+    transition: width 0.8s ease;
+  }
+ 
+  .main-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+ 
+  .topbar {
+    border-bottom: 1px solid var(--border);
+    padding: 10px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 11px;
+    color: var(--green-dim);
+    letter-spacing: 2px;
+    background: rgba(0,8,0,0.4);
+  }
+ 
+  .topbar-title {
+    color: var(--green);
+    font-size: 13px;
+    letter-spacing: 3px;
+  }
+ 
+  .topbar-sep { opacity: 0.3; }
+ 
+  .topbar-right {
+    margin-left: auto;
+    display: flex;
+    gap: 16px;
+    align-items: center;
+  }
+ 
+  .glitch-badge {
+    color: var(--red);
+    animation: glitchPulse 3s ease-in-out infinite;
+    font-size: 10px;
+    letter-spacing: 2px;
+  }
+ 
+  @keyframes glitchPulse {
+    0%, 90%, 100% { opacity: 1; }
+    92% { opacity: 0; }
+    94% { opacity: 1; }
+    96% { opacity: 0; }
+  }
+ 
+  .panel-area {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--green-dim) transparent;
+  }
+ 
+  .panel { display: none; }
+  .panel.active { display: block; }
+ 
+  /* PANEL COMPONENTS */
+  .panel-header {
+    font-family: 'VT323', monospace;
+    font-size: 28px;
+    letter-spacing: 6px;
+    margin-bottom: 6px;
+    text-shadow: 0 0 15px var(--green-glow);
+  }
+ 
+  .panel-desc {
+    font-size: 11px;
+    color: var(--green-dim);
+    letter-spacing: 2px;
+    margin-bottom: 24px;
+    border-left: 2px solid var(--border);
+    padding-left: 12px;
+  }
+ 
+  .terminal-block {
+    background: rgba(0,10,0,0.8);
+    border: 1px solid var(--border);
+    padding: 16px;
+    font-size: 12px;
+    line-height: 1.8;
+    margin-bottom: 16px;
+    position: relative;
+  }
+ 
+  .terminal-block::before {
+    content: attr(data-label);
+    position: absolute;
+    top: -10px;
+    left: 12px;
+    background: var(--bg);
+    padding: 0 8px;
+    font-size: 10px;
+    color: var(--green-dim);
+    letter-spacing: 2px;
+  }
+ 
+  .t-green { color: var(--green); }
+  .t-dim { color: var(--green-dim); }
+  .t-cyan { color: var(--cyan); }
+  .t-amber { color: var(--amber); }
+  .t-red { color: var(--red); }
+  .t-white { color: #ccffcc; }
+ 
+  .inline-input-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 12px;
+  }
+ 
+  .inline-prompt { color: var(--cyan); font-size: 13px; }
+ 
+  .inline-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid var(--border);
+    color: var(--green);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 13px;
+    outline: none;
+    padding: 4px 0;
+    letter-spacing: 2px;
+  }
+ 
+  .inline-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--green-dim);
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    padding: 4px 12px;
+    cursor: pointer;
+    letter-spacing: 2px;
+    transition: all 0.2s;
+  }
+ 
+  .inline-btn:hover {
+    color: var(--green);
+    border-color: var(--green);
+    box-shadow: 0 0 8px var(--green-glow);
+  }
+ 
+  .puzzle-response {
+    margin-top: 10px;
+    font-size: 12px;
+    min-height: 18px;
+    letter-spacing: 1px;
+  }
+ 
+  .success { color: var(--green); text-shadow: 0 0 8px var(--green-glow); }
+  .failure { color: var(--red); }
+ 
+  /* FILE EXPLORER */
+  .file-tree { font-size: 12px; line-height: 2; }
+  .file-tree .dir { color: var(--cyan); }
+  .file-tree .file { color: var(--green-dim); cursor: pointer; }
+  .file-tree .file:hover { color: var(--green); text-decoration: underline; }
+  .file-tree .hidden { color: rgba(0,255,65,0.2); font-style: italic; }
+  .file-tree .file.red { color: var(--amber); }
+ 
+  .file-content {
+    margin-top: 16px;
+    background: rgba(0,10,0,0.8);
+    border: 1px solid var(--border);
+    padding: 16px;
+    font-size: 12px;
+    line-height: 1.8;
+    white-space: pre-wrap;
+    word-break: break-all;
+    display: none;
+    position: relative;
+  }
+ 
+  .file-content.open { display: block; }
+ 
+  .close-btn {
+    position: absolute;
+    top: 8px;
+    right: 12px;
+    color: var(--red);
+    cursor: pointer;
+    font-size: 14px;
+  }
+ 
+  /* CRYPTO PANEL */
+  .crypto-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+ 
+  @media (max-width: 700px) { .crypto-grid { grid-template-columns: 1fr; } }
+ 
+  .crypto-card {
+    border: 1px solid var(--border);
+    padding: 16px;
+    background: rgba(0,10,0,0.6);
+    position: relative;
+  }
+ 
+  .crypto-card::before {
+    content: attr(data-type);
+    position: absolute;
+    top: -10px;
+    left: 10px;
+    background: var(--bg);
+    padding: 0 8px;
+    font-size: 10px;
+    color: var(--cyan);
+    letter-spacing: 3px;
+  }
+ 
+  .crypto-msg {
+    font-size: 11px;
+    color: var(--amber);
+    word-break: break-all;
+    line-height: 1.6;
+    margin-bottom: 12px;
+  }
+ 
+  /* GLITCH EFFECT */
+  .glitch {
+    position: relative;
+    animation: glitch 8s infinite;
+  }
+ 
+  @keyframes glitch {
+    0%, 95%, 100% { transform: none; text-shadow: 0 0 10px var(--green-glow); }
+    96% { transform: translate(-2px, 0); text-shadow: 2px 0 var(--red); }
+    97% { transform: translate(2px, 0); text-shadow: -2px 0 var(--cyan); }
+    98% { transform: translate(-1px, 0); text-shadow: 1px 0 var(--amber); }
+  }
+ 
+  /* EMOTIONAL GLITCH */
+  .emotional-interference {
+    display: none;
+    background: rgba(255,34,68,0.05);
+    border: 1px solid rgba(255,34,68,0.2);
+    padding: 12px 16px;
+    margin: 16px 0;
+    font-size: 11px;
+    color: rgba(255,34,68,0.7);
+    letter-spacing: 2px;
+    animation: emotionalPulse 4s ease-in-out infinite;
+    position: relative;
+  }
+ 
+  .emotional-interference::before {
+    content: '⚠ ANOMALIA_EMOCIONAL_DETECTADA';
+    display: block;
+    font-size: 10px;
+    color: var(--red);
+    margin-bottom: 6px;
+    letter-spacing: 3px;
+  }
+ 
+  @keyframes emotionalPulse {
+    0%, 100% { border-color: rgba(255,34,68,0.2); }
+    50% { border-color: rgba(255,34,68,0.5); box-shadow: 0 0 12px rgba(255,34,68,0.15); }
+  }
+ 
+  .emotional-interference.show { display: block; }
+ 
+  /* PYTHON PANEL */
+  .python-editor {
+    background: #0a0a0a;
+    border: 1px solid var(--border);
+    padding: 16px;
+    font-size: 12px;
+    line-height: 1.8;
+    margin-bottom: 12px;
+    font-family: 'Courier Prime', monospace;
+  }
+ 
+  .py-kw { color: #c792ea; }
+  .py-fn { color: #82aaff; }
+  .py-str { color: #c3e88d; }
+  .py-num { color: #f78c6c; }
+  .py-com { color: #546e7a; }
+  .py-builtin { color: var(--amber); }
+ 
+  /* FINAL REVELATION */
+  #final {
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(ellipse at center, #000a00 0%, #000000 100%);
+  }
+ 
+  .final-container {
+    max-width: 680px;
+    width: 100%;
+    text-align: center;
+  }
+ 
+  .final-glitch-title {
+    font-family: 'VT323', monospace;
+    font-size: 64px;
+    letter-spacing: 10px;
+    margin-bottom: 12px;
+    animation: finalGlitch 6s infinite;
+  }
+ 
+  @keyframes finalGlitch {
+    0%, 88%, 100% {
+      color: var(--green);
+      text-shadow: 0 0 30px var(--green-glow), 0 0 60px var(--green-glow);
+    }
+    89% {
+      color: var(--red);
+      text-shadow: -3px 0 var(--cyan), 3px 0 var(--red);
+    }
+    90% {
+      color: var(--cyan);
+      text-shadow: 3px 0 var(--green), -3px 0 var(--amber);
+    }
+    91% {
+      color: var(--green);
+      text-shadow: 0 0 30px var(--green-glow);
+    }
+  }
+ 
+  .final-letter {
+    background: rgba(0,20,0,0.6);
+    border: 1px solid rgba(0,255,65,0.3);
+    padding: 40px;
+    margin: 24px 0;
+    text-align: left;
+    position: relative;
+    box-shadow: 0 0 60px rgba(0,255,65,0.1);
+  }
+ 
+  .final-letter::before {
+    content: 'MEMÓRIA_RECUPERADA — ARQUIVO_PESSOAL.love';
+    position: absolute;
+    top: -12px;
+    left: 20px;
+    background: #000;
+    padding: 0 10px;
+    font-size: 11px;
+    color: var(--cyan);
+    letter-spacing: 2px;
+  }
+ 
+  .letter-text {
+    font-family: 'Courier Prime', monospace;
+    font-size: 15px;
+    line-height: 2;
+    color: #ccffcc;
+    white-space: pre-wrap;
+  }
+ 
+  .letter-text em {
+    color: var(--green);
+    font-style: normal;
+    text-shadow: 0 0 8px var(--green-glow);
+  }
+ 
+  .memories-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin: 24px 0;
+  }
+ 
+  .memory-card {
+    border: 1px solid var(--border);
+    padding: 16px;
+    background: rgba(0,15,0,0.6);
+    text-align: center;
+    font-size: 12px;
+    line-height: 1.8;
+    color: var(--green-dim);
+    transition: all 0.4s;
+    cursor: default;
+    animation: memoryReveal 0.5s ease both;
+  }
+ 
+  .memory-card:hover {
+    border-color: var(--green);
+    color: var(--green);
+    box-shadow: 0 0 20px var(--green-glow);
+  }
+ 
+  .memory-card .mem-icon { font-size: 28px; margin-bottom: 8px; display: block; }
+  .memory-card .mem-date { font-size: 10px; color: var(--cyan); letter-spacing: 2px; }
+ 
+  @keyframes memoryReveal {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: none; }
+  }
+ 
+  .final-signature {
+    margin-top: 32px;
+    font-family: 'VT323', monospace;
+    font-size: 20px;
+    letter-spacing: 4px;
+    color: var(--green-dim);
+    animation: sigPulse 3s ease-in-out infinite;
+  }
+ 
+  @keyframes sigPulse {
+    50% { color: var(--green); text-shadow: 0 0 10px var(--green-glow); }
+  }
+ 
+  /* UNLOCK ANIMATION */
+  .unlock-flash {
+    position: fixed;
+    inset: 0;
+    background: var(--green);
+    opacity: 0;
+    pointer-events: none;
+    z-index: 99997;
+    transition: opacity 0.1s;
+  }
+ 
+  .unlock-flash.show { opacity: 0.15; }
+ 
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--green-dim); }
+ 
+  /* TYPING CURSOR */
+  .typing::after {
+    content: '█';
+    animation: blink 0.8s step-end infinite;
+  }
+ 
+  .badge {
+    display: inline-block;
+    background: rgba(0,255,65,0.1);
+    border: 1px solid var(--border);
+    padding: 2px 8px;
+    font-size: 10px;
+    letter-spacing: 2px;
+    color: var(--green-dim);
+    margin-right: 6px;
+    margin-bottom: 4px;
+  }
+ 
+  .badge.solved { background: rgba(0,255,65,0.2); color: var(--green); border-color: var(--green); }
+ 
+  .progress-section {
+    margin-bottom: 24px;
+  }
+ 
+  .progress-label {
+    font-size: 10px;
+    letter-spacing: 3px;
+    color: var(--green-dim);
+    margin-bottom: 6px;
+  }
+ 
+  .progress-bar {
+    height: 4px;
+    background: rgba(0,255,65,0.1);
+    border: 1px solid var(--border);
+    overflow: hidden;
+  }
+ 
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--green-dim), var(--green));
+    box-shadow: 0 0 8px var(--green-glow);
+    transition: width 0.8s ease;
+    width: 0%;
+  }
+</style>
+</head>
+<body>
+ 
+<!-- FLASH EFFECT -->
+<div class="unlock-flash" id="flashOverlay"></div>
+ 
+<!-- ═══════════════════════════════════════════
+     SCREEN 1: BOOT
+═══════════════════════════════════════════ -->
+<div class="screen active" id="boot">
+  <div class="boot-container">
+    <div class="ascii-logo">
+ ███████╗ ██████╗██╗  ██╗ ██████╗ 
+ ██╔════╝██╔════╝██║  ██║██╔═══██╗
+ █████╗  ██║     ███████║██║   ██║
+ ██╔══╝  ██║     ██╔══██║██║   ██║
+ ███████╗╚██████╗██║  ██║╚██████╔╝
+ ╚══════╝ ╚═════╝╚═╝  ╚═╝ ╚═════╝ 
+    </div>
+    <div id="bootLines"></div>
+  </div>
+</div>
+ 
+<!-- ═══════════════════════════════════════════
+     SCREEN 2: AUTH
+═══════════════════════════════════════════ -->
+<div class="screen" id="auth">
+  <div class="auth-box">
+    <div class="auth-title glitch">ECHO_SYS</div>
+    <div class="auth-subtitle">MEMORY RECOVERY ENGINE — RESTRICTED ACCESS</div>
+ 
+    <div class="auth-field">
+      <label>▸ OPERATOR_ID</label>
+      <input type="text" id="authUser" value="user_guest" readonly style="opacity:0.5">
+    </div>
+    <div class="auth-field">
+      <label>▸ ACCESS_KEY [ENCRYPTED]</label>
+      <input type="password" id="authPass" placeholder="_ _ _ _ _ _ _ _ _ _" autocomplete="off">
+    </div>
+ 
+    <button class="auth-btn" onclick="attemptAuth()">▶ INICIAR AUTENTICAÇÃO</button>
+    <div class="auth-error" id="authError"></div>
+ 
+    <div class="auth-hint">
+      SISTEMA CORROMPIDO — DADOS PARCIALMENTE RECUPERÁVEIS<br>
+      NÍVEL DE ACESSO NECESSÁRIO: 7 / CONFIDENCIAL<br><br>
+      <span style="color:rgba(0,255,65,0.15)">// pista: investigue o código-fonte desta página</span>
+    </div>
+  </div>
+</div>
+ 
+<!-- ═══════════════════════════════════════════
+     SCREEN 3: MAIN TERMINAL
+═══════════════════════════════════════════ -->
+<div class="screen" id="terminal">
+  <div class="sidebar">
+    <div class="sidebar-logo">◈ ECHO</div>
+    <div class="sidebar-ver">v2.1.0 — RECOVERY_MODE</div>
+ 
+    <div class="nav-label">▸ MÓDULOS</div>
+    <div class="nav-item active" onclick="showPanel('overview')" id="nav-overview">
+      <span>░░</span> OVERVIEW
+      <span class="nav-status t-green">●</span>
+    </div>
+    <div class="nav-item" onclick="showPanel('files')" id="nav-files">
+      <span>░░</span> ARQUIVOS
+      <span class="nav-status t-amber">◌</span>
+    </div>
+    <div class="nav-item" onclick="showPanel('crypto')" id="nav-crypto">
+      <span>░░</span> DECODIFICADOR
+      <span class="nav-status t-amber">◌</span>
+    </div>
+    <div class="nav-item" onclick="showPanel('python')" id="nav-python">
+      <span>░░</span> PYTHON_ENV
+      <span class="nav-status t-amber">◌</span>
+    </div>
+    <div class="nav-item locked" id="nav-final">
+      <span>░░</span> ██████████
+      <span class="nav-status t-red">✕</span>
+    </div>
+ 
+    <div class="status-bar">
+      <div class="status-line">RECUPERAÇÃO DE MEMÓRIA</div>
+      <div class="status-line" id="recoveryCount">0 / 4 setores</div>
+      <div class="status-progress">
+        <div class="status-fill" id="recoveryBar" style="width:0%"></div>
+      </div>
+    </div>
+  </div>
+ 
+  <div class="main-content">
+    <div class="topbar">
+      <span class="topbar-title">ECHO_SYSTEM</span>
+      <span class="topbar-sep">|</span>
+      <span>OPERATOR: user_guest</span>
+      <span class="topbar-sep">|</span>
+      <span id="sysTime">--:--:--</span>
+      <div class="topbar-right">
+        <span class="glitch-badge">⚠ DADOS CORROMPIDOS</span>
+        <span id="solvedBadges"></span>
+      </div>
+    </div>
+ 
+    <div class="panel-area">
+ 
+      <!-- OVERVIEW -->
+      <div class="panel active" id="panel-overview">
+        <div class="panel-header glitch">VISÃO GERAL</div>
+        <div class="panel-desc">STATUS DO SISTEMA — RECOVERY SCAN v2.1</div>
+ 
+        <div class="terminal-block" data-label="SYSTEM_LOG.txt">
+          <span class="t-dim">[00:00:01]</span> <span class="t-green">ECHO_SYSTEM inicializado.</span><br>
+          <span class="t-dim">[00:00:02]</span> <span class="t-amber">ALERTA: corrupção detectada em 4 setores de memória.</span><br>
+          <span class="t-dim">[00:00:03]</span> <span class="t-cyan">Iniciando protocolo de recuperação...</span><br>
+          <span class="t-dim">[00:00:04]</span> <span class="t-dim">Mapeando clusters danificados...</span><br>
+          <span class="t-dim">[00:00:05]</span> <span class="t-amber">847 de 2048 setores recuperáveis.</span><br>
+          <span class="t-dim">[00:00:07]</span> <span class="t-red">ERRO: arquivos de memória emocional — checksum inválido.</span><br>
+          <span class="t-dim">[00:00:09]</span> <span class="t-green">Aguardando intervenção do operador.</span><br>
+          <span class="t-dim">[00:00:12]</span> <span class="t-dim">-- acesso concedido -- bem-vinda ao sistema --</span>
+        </div>
+ 
+        <div class="emotional-interference show" id="emo-overview">
+          resíduos emocionais detectados no setor 0x00 — natureza desconhecida — intensidade: alta
+        </div>
+ 
+        <div class="terminal-block" data-label="INSTRUCOES.sys">
+          <span class="t-cyan">OBJETIVO:</span> recuperar 4 setores de memória corrompida.<br><br>
+          <span class="t-green">MÓDULOS DISPONÍVEIS:</span><br>
+          <span class="t-dim">  ├─</span> <span class="t-white">ARQUIVOS</span> <span class="t-dim">— explore o sistema de arquivos</span><br>
+          <span class="t-dim">  ├─</span> <span class="t-white">DECODIFICADOR</span> <span class="t-dim">— quebre as criptografias</span><br>
+          <span class="t-dim">  ├─</span> <span class="t-white">PYTHON_ENV</span> <span class="t-dim">— resolva os desafios de código</span><br>
+          <span class="t-dim">  └─</span> <span class="t-white">████████</span> <span class="t-dim">— bloqueado até recuperação completa</span><br><br>
+          <span class="t-amber">USE AS FERRAMENTAS DO NAVEGADOR.</span> <span class="t-dim">Inspecione elementos. Leia o console.</span><br>
+          <span class="t-dim">As respostas estão escondidas em camadas. Procure fundo.</span>
+        </div>
+ 
+        <div class="progress-section">
+          <div class="progress-label">PROGRESSO GERAL DE RECUPERAÇÃO</div>
+          <div class="progress-bar">
+            <div class="progress-fill" id="overallProgress"></div>
+          </div>
+        </div>
+ 
+        <div id="badgeRow">
+          <span class="badge" id="b-files">ARQUIVOS</span>
+          <span class="badge" id="b-crypto">CRIPTO</span>
+          <span class="badge" id="b-python">PYTHON</span>
+          <span class="badge" id="b-api">API_KEY</span>
+        </div>
+      </div>
+ 
+      <!-- FILES -->
+      <div class="panel" id="panel-files">
+        <div class="panel-header">ARQUIVOS</div>
+        <div class="panel-desc">SISTEMA DE ARQUIVOS — SETORES PARCIALMENTE CORROMPIDOS</div>
+ 
+        <div class="terminal-block" data-label="FILESYSTEM_MAP">
+          <div class="file-tree">
+            <span class="dir">📁 /echo_system/</span><br>
+            <span class="t-dim">├─ </span><span class="dir">📁 logs/</span><br>
+            <span class="t-dim">│  ├─ </span><span class="file" onclick="openFile('system_log')">system_log.txt</span><br>
+            <span class="t-dim">│  └─ </span><span class="file" onclick="openFile('error_log')">error_log.txt</span><br>
+            <span class="t-dim">├─ </span><span class="dir">📁 memoria/</span><br>
+            <span class="t-dim">│  ├─ </span><span class="file red" onclick="openFile('mem_corrupted')">CORRUPTED_847.mem ⚠</span><br>
+            <span class="t-dim">│  └─ </span><span class="file" onclick="openFile('mem_partial')">partial_recovery.dat</span><br>
+            <span class="t-dim">├─ </span><span class="dir">📁 .hidden/</span><br>
+            <span class="t-dim">│  ├─ </span><span class="hidden" onclick="openFile('hidden1')">.secret_key ←← VOCÊ VÊ ISSO?</span><br>
+            <span class="t-dim">│  └─ </span><span class="hidden" onclick="openFile('hidden2')">.emotional_residue.log</span><br>
+            <span class="t-dim">└─ </span><span class="file" onclick="openFile('readme')">README.sys</span>
+          </div>
+        </div>
+ 
+        <div class="file-content" id="fc-system_log">
+          <span class="close-btn" onclick="closeFile('system_log')">✕ fechar</span>
+          <span class="t-cyan">═══ system_log.txt ═══</span>
+ 
+<span class="t-dim">[2024-01-14 19:43:22]</span> Sistema iniciado.
+<span class="t-dim">[2024-01-14 19:43:25]</span> Operador autenticado.
+<span class="t-dim">[2024-01-14 19:43:31]</span> Carregando memórias do setor A...
+<span class="t-dim">[2024-01-14 19:43:33]</span> <span class="t-amber">FALHA: checksum emocional não corresponde.</span>
+<span class="t-dim">[2024-01-14 19:43:34]</span> Tentando reconstruir a partir de fragmentos.
+<span class="t-dim">[2024-01-14 19:43:40]</span> Fragmento detectado: <span class="t-green">memória_0001</span> — tipo: alegria
+<span class="t-dim">[2024-01-14 19:43:41]</span> <span class="t-red">ERRO: dados muito intensos para exibição direta.</span>
+<span class="t-dim">[2024-01-14 19:43:42]</span> Arquivando para revelação posterior.
+<span class="t-dim">[2024-01-14 19:43:50]</span> <span class="t-dim">// nota pessoal: algumas memórias ficam grandes demais pra um arquivo</span>
+        </div>
+ 
+        <div class="file-content" id="fc-error_log">
+          <span class="close-btn" onclick="closeFile('error_log')">✕ fechar</span>
+          <span class="t-cyan">═══ error_log.txt ═══</span>
+ 
+<span class="t-red">ERRO_0x4A1</span>: falha ao comprimir sentimento — tamanho: IMENSURÁVEL
+<span class="t-red">ERRO_0x4A2</span>: overflow no buffer de carinho — capacidade excedida
+<span class="t-red">ERRO_0x4A3</span>: tentativa de serializar saudade — formato desconhecido
+<span class="t-amber">WARN_0x0F1</span>: risadas detectadas — nenhum arquivo captura isso direito
+<span class="t-amber">WARN_0x0F2</span>: campo "amor" retorna NaN — não é um número, é outra coisa
+ 
+<span class="t-dim">// esses erros são insolúveis. e está tudo bem assim.</span>
+        </div>
+ 
+        <div class="file-content" id="fc-mem_corrupted">
+          <span class="close-btn" onclick="closeFile('mem_corrupted')">✕ fechar</span>
+          <span class="t-cyan">═══ CORRUPTED_847.mem ═══</span>
+ 
+<span class="t-red">████ █████ ████████ ██████</span>
+<span class="t-red">██ você estava sorrindo ██████████</span>
+<span class="t-red">████████████████ e eu ██████████</span>
+<span class="t-red">██████████████████████████████</span>
+<span class="t-red">████ não consigo recuperar ████</span>
+<span class="t-red">████████████ o resto ██████████</span>
+<span class="t-red">████████████████████████████</span>
+ 
+<span class="t-dim">// setor 847: fragmento recuperável mas incompleto.</span>
+<span class="t-dim">// memória original era muito boa para caber num arquivo.</span>
+        </div>
+ 
+        <div class="file-content" id="fc-mem_partial">
+          <span class="close-btn" onclick="closeFile('mem_partial')">✕ fechar</span>
+          <span class="t-cyan">═══ partial_recovery.dat ═══</span>
+ 
+<span class="t-dim">RECUPERANDO FRAGMENTOS...</span>
+ 
+fragmento_1: "a primeira vez que você riu daquele jeito"
+fragmento_2: "01101000 01101111 01101100 01100100 00100000 01101111 01101110"
+fragmento_3: [CHECKSUM_FALHOU] — tente o decodificador
+fragmento_4: "eu perceb... [CORROMPIDO]"
+ 
+<span class="t-amber">DICA:</span> o fragmento_2 está em binário. O que diz?
+<span class="t-dim">// use qualquer decodificador online ou o painel DECODIFICADOR</span>
+        </div>
+ 
+        <div class="file-content" id="fc-hidden1">
+          <span class="close-btn" onclick="closeFile('hidden1')">✕ fechar</span>
+          <span class="t-cyan">═══ .secret_key ═══</span>
+ 
+<span class="t-amber">VOCÊ ENCONTROU UM ARQUIVO OCULTO.</span>
+<span class="t-dim">bom trabalho, detetive.</span>
+ 
+<span class="t-green">CHAVE_PARCIAL:</span> <span class="t-white">echo_</span><span class="t-dim">[FALTA A SEGUNDA METADE]</span>
+ 
+A segunda metade está no console do navegador.
+Abra o DevTools (F12) → aba Console.
+ 
+<span class="t-dim">// dica: procure por console.log no código-fonte</span>
+        </div>
+ 
+        <div class="file-content" id="fc-hidden2">
+          <span class="close-btn" onclick="closeFile('hidden2')">✕ fechar</span>
+          <span class="t-cyan">═══ .emotional_residue.log ═══</span>
+ 
+<span class="t-red">RESÍDUO EMOCIONAL DETECTADO — NÍVEL: CRÍTICO</span>
+ 
+timestamp: indeterminado
+origem: setor de memórias compartilhadas
+natureza: <span class="t-amber">afeto excessivo não catalogado</span>
+ 
+fragmentos:
+  - risadas que ficaram no ar depois de ir embora
+  - olhar que não sei descrever mas reconheço
+  - o silêncio que não precisou de palavras
+  - <span class="t-green">[ESTE ARQUIVO É SOBRE VOCÊ]</span>
+ 
+<span class="t-dim">// o sistema não sabe onde arquivar isso.</span>
+<span class="t-dim">// então ficou aqui, nos arquivos ocultos.</span>
+<span class="t-dim">// onde só quem procura fundo encontra.</span>
+        </div>
+ 
+        <div class="file-content" id="fc-readme">
+          <span class="close-btn" onclick="closeFile('readme')">✕ fechar</span>
+          <span class="t-cyan">═══ README.sys ═══</span>
+ 
+PROJECT ECHO — Documentação Técnica
+ 
+Este sistema foi desenvolvido para recuperar
+dados corrompidos de alta complexidade emocional.
+ 
+<span class="t-amber">AVISO:</span> os dados deste sistema são de natureza
+pessoal e podem causar efeitos colaterais.
+ 
+Efeitos colaterais conhecidos:
+  - sorriso involuntário
+  - leveza inexplicável
+  - vontade de abraçar alguém
+ 
+<span class="t-green">PUZZLE DO SETOR 1:</span>
+Para desbloquear este setor, resolva:
+ 
+Qual a chave de acesso completa do sistema?
+  → Parte 1: encontrada em .hidden/.secret_key
+  → Parte 2: encontrada no console do navegador
+  → Combine as duas: [parte1][parte2]
+ 
+<span class="t-dim">Insira abaixo para recuperar o Setor 1:</span>
+        </div>
+ 
+        <div class="emotional-interference" id="emo-files" style="display:none;">
+          os arquivos ocultos às vezes guardam as coisas mais importantes — procure fundo
+        </div>
+ 
+        <!-- PUZZLE 1 -->
+        <div class="terminal-block" data-label="PUZZLE_1 — SETOR_A">
+          <span class="t-cyan">▸ DESAFIO: Chave do Sistema</span><br>
+          <span class="t-dim">Combine as duas partes da chave encontradas nos arquivos e no console.</span><br>
+          <span class="t-dim">Formato: echo_[palavra]</span>
+          <div class="inline-input-row">
+            <span class="inline-prompt">key@echo:~$</span>
+            <input class="inline-input" id="p1-input" placeholder="echo_????????" onkeydown="if(event.key==='Enter')checkPuzzle1()">
+            <button class="inline-btn" onclick="checkPuzzle1()">VERIFICAR</button>
+          </div>
+          <div class="puzzle-response" id="p1-res"></div>
+        </div>
+      </div>
+ 
+      <!-- CRYPTO -->
+      <div class="panel" id="panel-crypto">
+        <div class="panel-header">DECODIFICADOR</div>
+        <div class="panel-desc">QUEBRA DE CRIPTOGRAFIA — MENSAGENS INTERCEPTADAS</div>
+ 
+        <div class="terminal-block" data-label="INTERCEPTED_TRANSMISSIONS">
+          <span class="t-dim">3 mensagens criptografadas detectadas nos setores corrompidos.</span><br>
+          <span class="t-dim">Decodifique-as e insira as respostas para recuperar o Setor B.</span>
+        </div>
+ 
+        <div class="crypto-grid">
+          <div class="crypto-card" data-type="BASE64">
+            <div class="crypto-msg">ZXUgdGUgYW1v</div>
+            <span class="t-dim" style="font-size:10px">Decodifique este Base64:</span>
+            <div class="inline-input-row" style="margin-top:8px">
+              <input class="inline-input" id="c1-input" placeholder="mensagem..." onkeydown="if(event.key==='Enter')checkCrypto()">
+            </div>
+            <div class="puzzle-response" id="c1-res" style="font-size:11px"></div>
+          </div>
+ 
+          <div class="crypto-card" data-type="HEX">
+            <div class="crypto-msg">73 65 6d 70 72 65</div>
+            <span class="t-dim" style="font-size:10px">Decodifique este Hex:</span>
+            <div class="inline-input-row" style="margin-top:8px">
+              <input class="inline-input" id="c2-input" placeholder="palavra..." onkeydown="if(event.key==='Enter')checkCrypto()">
+            </div>
+            <div class="puzzle-response" id="c2-res" style="font-size:11px"></div>
+          </div>
+ 
+          <div class="crypto-card" data-type="BINÁRIO">
+            <div class="crypto-msg">01101010 01110101 01101110 01110100 01101111 01110011</div>
+            <span class="t-dim" style="font-size:10px">Decodifique este Binário:</span>
+            <div class="inline-input-row" style="margin-top:8px">
+              <input class="inline-input" id="c3-input" placeholder="palavra..." onkeydown="if(event.key==='Enter')checkCrypto()">
+            </div>
+            <div class="puzzle-response" id="c3-res" style="font-size:11px"></div>
+          </div>
+ 
+          <div class="crypto-card" data-type="ROT13">
+            <div class="crypto-msg">rh r ibpê</div>
+            <span class="t-dim" style="font-size:10px">Decodifique este ROT13:</span>
+            <div class="inline-input-row" style="margin-top:8px">
+              <input class="inline-input" id="c4-input" placeholder="frase..." onkeydown="if(event.key==='Enter')checkCrypto()">
+            </div>
+            <div class="puzzle-response" id="c4-res" style="font-size:11px"></div>
+          </div>
+        </div>
+ 
+        <div class="terminal-block" data-label="PUZZLE_2 — SETOR_B">
+          <span class="t-cyan">▸ DESAFIO: Mensagem Oculta</span><br>
+          <span class="t-dim">As 4 mensagens decodificadas formam uma frase. Qual é ela?</span><br>
+          <span class="t-dim">Ordem: [base64] [hex] [binário] [rot13]</span>
+          <div class="inline-input-row">
+            <span class="inline-prompt">crypto@echo:~$</span>
+            <input class="inline-input" id="p2-input" placeholder="eu te amo ..." onkeydown="if(event.key==='Enter')checkPuzzle2()">
+            <button class="inline-btn" onclick="checkPuzzle2()">VERIFICAR</button>
+          </div>
+          <div class="puzzle-response" id="p2-res"></div>
+        </div>
+ 
+        <div class="emotional-interference" id="emo-crypto">
+          essas palavras estavam escondidas porque são grandes demais pra dizer sem querer
+        </div>
+      </div>
+ 
+      <!-- PYTHON -->
+      <div class="panel" id="panel-python">
+        <div class="panel-header">PYTHON_ENV</div>
+        <div class="panel-desc">AMBIENTE DE EXECUÇÃO — DESAFIOS DE CÓDIGO</div>
+ 
+        <div class="terminal-block" data-label="MISSION_BRIEF">
+          <span class="t-dim">Dois desafios de código encontrados nos setores corrompidos.</span><br>
+          <span class="t-dim">Execute mentalmente (ou num Python real) e insira os resultados.</span>
+        </div>
+ 
+        <!-- PUZZLE 3A -->
+        <div class="terminal-block" data-label="CHALLENGE_A.py">
+          <div class="python-editor">
+<span class="py-com"># O que esse código imprime?</span>
+ 
+<span class="py-kw">def</span> <span class="py-fn">sentimento</span>(x, y):
+    <span class="py-kw">return</span> x * y + <span class="py-num">1</span>
+ 
+a = sentimento(<span class="py-num">3</span>, <span class="py-num">7</span>)
+b = sentimento(<span class="py-num">2</span>, <span class="py-num">10</span>)
+c = a + b
+ 
+<span class="py-builtin">print</span>(<span class="py-str">f"resultado: {c}"</span>)
+          </div>
+          <div class="inline-input-row">
+            <span class="inline-prompt">python3$</span>
+            <input class="inline-input" id="p3a-input" placeholder="resultado: ?" onkeydown="if(event.key==='Enter')checkPuzzle3a()">
+            <button class="inline-btn" onclick="checkPuzzle3a()">EXECUTAR</button>
+          </div>
+          <div class="puzzle-response" id="p3a-res"></div>
+        </div>
+ 
+        <!-- PUZZLE 3B -->
+        <div class="terminal-block" data-label="CHALLENGE_B.py">
+          <div class="python-editor">
+<span class="py-com"># Qual o output desta função?</span>
+<span class="py-com"># (resposta em minúsculas, sem acento)</span>
+ 
+mensagem = [<span class="py-str">"a"</span>, <span class="py-str">"m"</span>, <span class="py-str">"o"</span>, <span class="py-str">"r"</span>]
+chave = {
+    <span class="py-str">"a"</span>: <span class="py-num">1</span>, <span class="py-str">"m"</span>: <span class="py-num">13</span>,
+    <span class="py-str">"o"</span>: <span class="py-num">15</span>, <span class="py-str">"r"</span>: <span class="py-num">18</span>
+}
+ 
+resultado = <span class="py-str">""</span>
+<span class="py-kw">for</span> letra <span class="py-kw">in</span> mensagem:
+    resultado += letra <span class="py-kw">if</span> chave[letra] % <span class="py-num">2</span> != <span class="py-num">0</span> <span class="py-kw">else</span> <span class="py-str">"_"</span>
+ 
+<span class="py-builtin">print</span>(resultado)
+          </div>
+          <div class="inline-input-row">
+            <span class="inline-prompt">python3$</span>
+            <input class="inline-input" id="p3b-input" placeholder="????" onkeydown="if(event.key==='Enter')checkPuzzle3b()">
+            <button class="inline-btn" onclick="checkPuzzle3b()">EXECUTAR</button>
+          </div>
+          <div class="puzzle-response" id="p3b-res"></div>
+        </div>
+ 
+        <!-- PUZZLE 3C: API KEY -->
+        <div class="terminal-block" data-label="BONUS_CHALLENGE — API_KEY">
+          <span class="t-cyan">▸ DESAFIO EXTRA: Encontre a API Key</span><br>
+          <span class="t-dim">Em sistemas reais, devs cometem erros e deixam chaves expostas.</span><br>
+          <span class="t-dim">Esta chave está escondida em algum lugar desta página.</span><br>
+          <span class="t-dim">Dica: inspecione os elementos da barra lateral. Há algo invisível?</span><br><br>
+          <span class="t-dim" style="font-size:10px">// tente: document.querySelector('[data-secret]').dataset.secret no console</span>
+          <div class="inline-input-row">
+            <span class="inline-prompt">api@echo:~$</span>
+            <input class="inline-input" id="p4-input" placeholder="ECHO-API-????-????-????" onkeydown="if(event.key==='Enter')checkPuzzle4()">
+            <button class="inline-btn" onclick="checkPuzzle4()">AUTENTICAR</button>
+          </div>
+          <div class="puzzle-response" id="p4-res"></div>
+        </div>
+ 
+        <div class="emotional-interference" id="emo-python" style="display:none">
+          os algoritmos mais complexos são os que tentam calcular o quanto alguém importa
+        </div>
+      </div>
+ 
+      <!-- FINAL LOCKED PANEL -->
+      <div class="panel" id="panel-final">
+        <div class="panel-header t-red">ACESSO NEGADO</div>
+        <div class="panel-desc">ESTE SETOR REQUER RECUPERAÇÃO COMPLETA DOS 4 SETORES</div>
+        <div class="terminal-block" data-label="">
+          <span class="t-red">BLOQUEADO ATÉ CONCLUSÃO DOS DESAFIOS ANTERIORES.</span><br>
+          <span class="t-dim">Setores necessários: A, B, C, D</span><br>
+          <span class="t-dim">Progresso atual: </span><span id="lockedProgress" class="t-amber">0/4</span>
+        </div>
+      </div>
+ 
+    </div><!-- /panel-area -->
+  </div><!-- /main-content -->
+</div><!-- /terminal -->
+ 
+<!-- ═══════════════════════════════════════════
+     SCREEN 4: FINAL REVELATION
+═══════════════════════════════════════════ -->
+<div class="screen" id="final">
+  <div class="final-container">
+    <div class="final-glitch-title">ECHO</div>
+    <div style="font-size:11px;letter-spacing:4px;color:var(--green-dim);margin-bottom:32px">
+      RECUPERAÇÃO COMPLETA — 4/4 SETORES RESTAURADOS
+    </div>
+ 
+    <div class="terminal-block" data-label="TRANSMISSÃO_FINAL.log" style="text-align:left;margin-bottom:24px">
+      <span class="t-dim">[SISTEMA]</span> <span class="t-green">todos os setores recuperados.</span><br>
+      <span class="t-dim">[SISTEMA]</span> <span class="t-amber">descriptografando memória principal...</span><br>
+      <span class="t-dim">[SISTEMA]</span> <span class="t-cyan">iniciando protocolo de revelação.</span><br>
+      <span class="t-dim">[SISTEMA]</span> <span class="t-green">arquivo pessoal desbloqueado. exibindo...</span>
+    </div>
+ 
+    <div class="final-letter">
+      <div class="letter-text" id="finalLetterText"></div>
+    </div>
+ 
+    <div class="memories-grid" id="memoriesGrid"></div>
+ 
+    <div class="terminal-block" data-label="MENSAGEM_FINAL.sys" style="margin-top:8px">
+      <span class="t-dim">obrigado por explorar até o fundo.</span><br>
+      <span class="t-dim">por ser curiosa. por não desistir nos puzzles difíceis.</span><br>
+      <span class="t-dim">por ser exatamente você.</span><br><br>
+      <span class="t-green">— com amor, de quem construiu isso pra você ❤</span>
+    </div>
+ 
+    <div class="final-signature">PROJECT ECHO — FIM DO ARQUIVO</div>
+  </div>
+</div>
+ 
+<!-- API KEY OCULTA (descoberta via DevTools) -->
+<div data-secret="ECHO-API-LOVE-2024-FOREVER" style="display:none" aria-hidden="true"></div>
+ 
+<script>
+// ═══════════════════════════════════════
+// CONSOLE MESSAGES (pistas ocultas)
+// ═══════════════════════════════════════
+console.log('%c╔══════════════════════════════════════╗', 'color:#00ff41;font-family:monospace');
+console.log('%c║     ECHO_SYSTEM — CONSOLE ATIVO      ║', 'color:#00ff41;font-family:monospace');
+console.log('%c╚══════════════════════════════════════╝', 'color:#00ff41;font-family:monospace');
+console.log('%c ', 'color:#00ff41');
+console.log('%c[PISTA ENCONTRADA] segunda metade da chave:', 'color:#ffaa00;font-family:monospace');
+console.log('%c  echo_amor', 'color:#00eeff;font-family:monospace;font-size:16px;font-weight:bold');
+console.log('%c ', 'color:#00ff41');
+console.log('%c[INFO] você chegou até o console. bom trabalho.', 'color:#00a82a;font-family:monospace');
+console.log('%c[INFO] a chave completa é: echo_amor', 'color:#00a82a;font-family:monospace');
+console.log('%c[INFO] use essa chave no campo de acesso do sistema.', 'color:#00a82a;font-family:monospace');
+console.log('%c ', 'color:#00ff41');
+console.log('%c// ps: olha que legal que você está investigando isso 🖤', 'color:#546e7a;font-family:monospace');
+ 
+// ═══════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════
+const state = {
+  solved: { p1: false, p2: false, p3a: false, p3b: false, p4: false },
+  sectors: 0,
+  authenticated: false
+};
+ 
+const SECTORS_NEEDED = 4;
+ 
+// ═══════════════════════════════════════
+// BOOT SEQUENCE
+// ═══════════════════════════════════════
+const bootMessages = [
+  { text: 'ECHO_SYSTEM v2.1.0 inicializando...', cls: 'info', delay: 200 },
+  { text: 'Verificando integridade do sistema...', cls: 'ok', delay: 400 },
+  { text: 'BIOS: OK | RAM: 64TB | DISK: CORRUPTO', cls: 'ok', delay: 600 },
+  { text: 'Carregando módulos de recuperação...', cls: 'ok', delay: 900 },
+  { text: 'ALERTA: 847 setores com corrupção emocional detectados.', cls: 'warn', delay: 1200 },
+  { text: 'ERRO: memória afetiva — checksum inválido em 4 setores.', cls: 'err', delay: 1500 },
+  { text: 'ERRO: tentativa de compressão de sentimentos falhou.', cls: 'err', delay: 1700 },
+  { text: 'Iniciando modo de recuperação manual...', cls: 'warn', delay: 2000 },
+  { text: 'Carregando interface de autenticação...', cls: 'ok', delay: 2400 },
+  { text: 'Aguardando operador autorizado...', cls: 'info', delay: 2700 },
+  { text: '> Redirecionar para AUTH_PORTAL? [S/n]', cls: 'ok', delay: 3000 },
+  { text: '> S', cls: 'ok', delay: 3300 },
+  { text: 'Redirecionando...', cls: 'info', delay: 3500 },
+];
+ 
+function runBoot() {
+  const container = document.getElementById('bootLines');
+  bootMessages.forEach(({ text, cls, delay }) => {
+    setTimeout(() => {
+      const line = document.createElement('div');
+      line.className = `boot-line ${cls}`;
+      line.style.animationDelay = '0s';
+      line.textContent = `> ${text}`;
+      container.appendChild(line);
+    }, delay);
+  });
+  setTimeout(() => {
+    showScreen('auth');
+  }, 3900);
+}
+ 
+// ═══════════════════════════════════════
+// SCREEN MANAGEMENT
+// ═══════════════════════════════════════
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+ 
+// ═══════════════════════════════════════
+// AUTH
+// ═══════════════════════════════════════
+function attemptAuth() {
+  const pass = document.getElementById('authPass').value.toLowerCase().trim();
+  const err = document.getElementById('authError');
+ 
+  // Correct password: ittakestwo
+  if (pass === 'ittakestwo') {
+    err.textContent = '';
+    flash();
+    setTimeout(() => {
+      showScreen('terminal');
+      initTerminal();
+    }, 600);
+  } else {
+    err.textContent = `> ACESSO NEGADO — chave "${pass}" não reconhecida. [${Math.random().toString(36).substr(2,8).toUpperCase()}]`;
+    document.getElementById('authPass').value = '';
+    // Hint after 3 failures
+    const hint = document.querySelector('.auth-hint');
+    const fails = parseInt(hint.dataset.fails || 0) + 1;
+    hint.dataset.fails = fails;
+    if (fails >= 3) {
+      hint.innerHTML += '<br><br><span style="color:rgba(0,255,65,0.4)">dica: o código-fonte esconde a resposta. ou pense em jogos cooperativos...</span>';
+    }
+  }
+}
+ 
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('authPass').addEventListener('keydown', e => {
+    if (e.key === 'Enter') attemptAuth();
+  });
+});
+ 
+// ═══════════════════════════════════════
+// TERMINAL INIT
+// ═══════════════════════════════════════
+function initTerminal() {
+  // Clock
+  setInterval(() => {
+    document.getElementById('sysTime').textContent = new Date().toTimeString().substr(0,8);
+  }, 1000);
+ 
+  // Show files emotional interference after delay
+  setTimeout(() => {
+    document.getElementById('emo-files').style.display = 'block';
+    document.getElementById('emo-files').classList.add('show');
+  }, 4000);
+}
+ 
+// ═══════════════════════════════════════
+// PANEL NAVIGATION
+// ═══════════════════════════════════════
+function showPanel(id) {
+  if (id === 'final' && state.sectors < SECTORS_NEEDED) return;
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById(`panel-${id}`).classList.add('active');
+  const navEl = document.getElementById(`nav-${id}`);
+  if (navEl) navEl.classList.add('active');
+}
+ 
+// ═══════════════════════════════════════
+// FILE SYSTEM
+// ═══════════════════════════════════════
+function openFile(name) {
+  document.querySelectorAll('.file-content').forEach(f => f.classList.remove('open'));
+  const el = document.getElementById(`fc-${name}`);
+  if (el) el.classList.add('open');
+}
+ 
+function closeFile(name) {
+  const el = document.getElementById(`fc-${name}`);
+  if (el) el.classList.remove('open');
+}
+ 
+// ═══════════════════════════════════════
+// PUZZLES
+// ═══════════════════════════════════════
+function flash() {
+  const f = document.getElementById('flashOverlay');
+  f.classList.add('show');
+  setTimeout(() => f.classList.remove('show'), 200);
+}
+ 
+function sectorUnlocked(sector, resEl) {
+  flash();
+  resEl.innerHTML = `<span class="success">✓ SETOR ${sector} RECUPERADO — memória restaurada com sucesso.</span>`;
+  state.sectors++;
+  updateProgress();
+  checkAllSolved();
+}
+ 
+function updateProgress() {
+  const pct = (state.sectors / SECTORS_NEEDED) * 100;
+  document.getElementById('recoveryBar').style.width = pct + '%';
+  document.getElementById('recoveryCount').textContent = `${state.sectors} / ${SECTORS_NEEDED} setores`;
+  document.getElementById('overallProgress').style.width = pct + '%';
+  document.getElementById('lockedProgress').textContent = `${state.sectors}/${SECTORS_NEEDED}`;
+}
+ 
+function checkAllSolved() {
+  if (state.sectors >= SECTORS_NEEDED) {
+    // Unlock final
+    const navFinal = document.getElementById('nav-final');
+    navFinal.classList.remove('locked');
+    navFinal.innerHTML = '<span>░░</span> MEMÓRIA<span class="nav-status t-green">●</span>';
+    navFinal.onclick = () => showPanel('final');
+ 
+    setTimeout(() => {
+      showPanel('final');
+      buildFinalScreen();
+    }, 1500);
+  }
+}
+ 
+// PUZZLE 1: echo_amor
+function checkPuzzle1() {
+  if (state.solved.p1) return;
+  const val = document.getElementById('p1-input').value.toLowerCase().trim();
+  const res = document.getElementById('p1-res');
+  if (val === 'echo_amor') {
+    state.solved.p1 = true;
+    document.getElementById('b-files').classList.add('solved');
+    document.getElementById('b-files').textContent = '✓ ARQUIVOS';
+    sectorUnlocked('A', res);
+    document.getElementById('emo-files').classList.add('show');
+  } else {
+    res.innerHTML = `<span class="failure">✕ CHAVE INVÁLIDA — "${val}" não corresponde ao hash esperado.</span>`;
+  }
+}
+ 
+// PUZZLE 2: eu te amo sempre juntos eu e você
+const cryptoAnswers = {
+  c1: ['eu te amo', 'eu te amo'],
+  c2: ['sempre', 'sempre'],
+  c3: ['juntos', 'juntos'],
+  c4: ['eu e você', 'eu e você']
+};
+ 
+function checkCrypto() {
+  ['c1','c2','c3','c4'].forEach(id => {
+    const val = document.getElementById(`${id}-input`).value.toLowerCase().trim();
+    const res = document.getElementById(`${id}-res`);
+    if (cryptoAnswers[id].includes(val)) {
+      res.innerHTML = '<span class="success">✓ correto</span>';
+    }
+  });
+}
+ 
+function checkPuzzle2() {
+  if (state.solved.p2) return;
+  const val = document.getElementById('p2-input').value.toLowerCase().trim();
+  const res = document.getElementById('p2-res');
+  const accepted = [
+    'eu te amo sempre juntos eu e você',
+    'eu te amo sempre juntos eu e voce',
+    'eu te amo sempre juntos',
+  ];
+  if (accepted.some(a => val.includes('eu te amo') && val.includes('sempre') && val.includes('juntos'))) {
+    state.solved.p2 = true;
+    document.getElementById('b-crypto').classList.add('solved');
+    document.getElementById('b-crypto').textContent = '✓ CRIPTO';
+    sectorUnlocked('B', res);
+    document.getElementById('emo-crypto').classList.add('show');
+  } else {
+    res.innerHTML = `<span class="failure">✕ MENSAGEM INCORRETA — junte as 4 decodificações em ordem.</span>`;
+  }
+}
+ 
+// PUZZLE 3A: resultado: 43
+// sentimento(3,7) = 3*7+1 = 22; sentimento(2,10) = 2*10+1 = 21; c = 22+21 = 43
+function checkPuzzle3a() {
+  if (state.solved.p3a) return;
+  const val = document.getElementById('p3a-input').value.toLowerCase().trim();
+  const res = document.getElementById('p3a-res');
+  if (val === 'resultado: 43' || val === '43') {
+    state.solved.p3a = true;
+    res.innerHTML = '<span class="success">✓ CORRETO — sentimento(3,7) + sentimento(2,10) = 43</span>';
+    checkPy();
+  } else {
+    res.innerHTML = '<span class="failure">✕ Incorreto. Execute o código passo a passo.</span>';
+  }
+}
+ 
+// PUZZLE 3B: a_or (letras com index ímpar ficam, pares viram _)
+// chave: a=1(ímpar→a), m=13(ímpar→m), o=15(ímpar→o), r=18(par→_)
+// resultado: amo_
+function checkPuzzle3b() {
+  if (state.solved.p3b) return;
+  const val = document.getElementById('p3b-input').value.toLowerCase().trim();
+  const res = document.getElementById('p3b-res');
+  if (val === 'amo_' || val === 'amo _') {
+    state.solved.p3b = true;
+    res.innerHTML = '<span class="success">✓ CORRETO — o código imprime: amo_</span>';
+    checkPy();
+  } else {
+    res.innerHTML = '<span class="failure">✕ Incorreto. Verifique quais valores são ímpares.</span>';
+  }
+}
+ 
+function checkPy() {
+  if (state.solved.p3a && state.solved.p3b && !state.pyDone) {
+    state.pyDone = true;
+    document.getElementById('b-python').classList.add('solved');
+    document.getElementById('b-python').textContent = '✓ PYTHON';
+    const fakeRes = document.getElementById('p3b-res');
+    setTimeout(() => {
+      state.sectors++;
+      updateProgress();
+      fakeRes.innerHTML += '<br><span class="success t-green">✓ SETOR C RECUPERADO — módulo Python concluído.</span>';
+      flash();
+      document.getElementById('emo-python').classList.add('show');
+      checkAllSolved();
+    }, 800);
+  }
+}
+ 
+// PUZZLE 4: API KEY
+function checkPuzzle4() {
+  if (state.solved.p4) return;
+  const val = document.getElementById('p4-input').value.trim().toUpperCase();
+  const res = document.getElementById('p4-res');
+  if (val === 'ECHO-API-LOVE-2024-FOREVER') {
+    state.solved.p4 = true;
+    document.getElementById('b-api').classList.add('solved');
+    document.getElementById('b-api').textContent = '✓ API_KEY';
+    sectorUnlocked('D', res);
+    res.innerHTML += '<br><span class="success">✓ SETOR D RECUPERADO — chave de API autenticada.</span>';
+  } else {
+    res.innerHTML = `<span class="failure">✕ Chave inválida. Dica: inspecione elementos com data-secret no DevTools.</span>`;
+  }
+}
+ 
+// ═══════════════════════════════════════
+// FINAL SCREEN
+// ═══════════════════════════════════════
+function buildFinalScreen() {
+  // PERSONALIZE AQUI — troque pelo nome da sua namorada e memórias reais
+  const partnerName = 'Amor'; // ← MUDE AQUI
+  const yourName = 'Eu'; // ← MUDE AQUI
+ 
+  const letter = `Olá, ${partnerName}.
+ 
+Se você chegou até aqui, é porque você é exatamente
+do jeito que eu sabia que você era — curiosa, inteligente,
+e disposta a ir fundo em coisas que parecem complicadas.
+ 
+Eu queria te dar algo diferente. Não flores (apesar de que
+flores são bonitas). Não chocolate (apesar de que também é
+boa ideia). Eu queria te dar algo que tivesse <em>a nossa cara</em>.
+ 
+Então construí um labirinto. E escdi uma carta dentro dele.
+E esperei você encontrar.
+ 
+E você encontrou.
+ 
+Cada puzzle foi pensado com carinho. A senha era sobre
+cooperação — porque algumas coisas só funcionam quando
+são feitas juntos. As mensagens criptografadas eram sobre
+palavras que às vezes são difíceis de dizer em voz alta
+mas ficam mais fáceis quando viram código.
+ 
+E esses arquivos corrompidos? São as memórias que
+não cabem em nenhum formato. As risadas, os silêncios,
+os momentos que o sistema não sabe catalogar porque
+são grandes demais.
+ 
+Obrigado por ser você.
+Obrigado por jogar comigo.
+Obrigado por ir até o fim.
+ 
+<em>Eu te amo.</em>
+ 
+— ${yourName}`;
+ 
+  document.getElementById('finalLetterText').innerHTML = letter.replace(/\n/g, '<br>');
+ 
+  // PERSONALIZE AQUI — troque pelas memórias do casal
+  const memories = [
+    { icon: '🎮', title: 'It Takes Two', date: 'o jogo que começou tudo', desc: 'duas pessoas. uma história. infinitas fases.' },
+    { icon: '⭐', title: 'Primeira vez', date: 'memória_0001.mem', desc: 'o momento que mudou tudo — você sabe qual é.' },
+    { icon: '🌙', title: 'Noites assim', date: 'arquivo incalculável', desc: 'conversas que não queremos parar.' },
+    { icon: '☕', title: 'Coisas simples', date: 'sempre recuperável', desc: 'que ficam grandes com você por perto.' },
+    { icon: '🔐', title: 'Segredos', date: '.hidden/nossos', desc: 'guardados nos arquivos que só você achou.' },
+    { icon: '❤', title: 'Esse momento', date: 'agora — ' + new Date().toLocaleDateString('pt-BR'), desc: 'quando você terminou o puzzle e leu isso.' },
+  ];
+ 
+  const grid = document.getElementById('memoriesGrid');
+  memories.forEach((m, i) => {
+    const card = document.createElement('div');
+    card.className = 'memory-card';
+    card.style.animationDelay = `${i * 0.15}s`;
+    card.innerHTML = `
+      <span class="mem-icon">${m.icon}</span>
+      <div class="t-green" style="font-size:12px;margin-bottom:4px">${m.title}</div>
+      <div class="mem-date">${m.date}</div>
+      <div style="margin-top:8px;font-size:11px;color:var(--green-dim)">${m.desc}</div>
+    `;
+    grid.appendChild(card);
+  });
+}
+ 
+// ═══════════════════════════════════════
+// START
+// ═══════════════════════════════════════
+window.addEventListener('load', runBoot);
+</script>
+</body>
+</html>
+ 

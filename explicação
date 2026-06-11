@@ -1,0 +1,242 @@
+# 🖤 PROJECT ECHO v2.1 — Guia Completo do Criador
+ 
+> Este documento é seu mapa. Ele explica como cada puzzle funciona, quais são as respostas, e o que você pode personalizar antes de entregar o presente.
+ 
+---
+ 
+## 📋 Visão Geral
+ 
+O presente é uma página HTML interativa com estética de terminal hacker. Sua namorada precisará resolver **4 puzzles** para desbloquear uma carta de amor escondida no final.
+ 
+**Fluxo do jogo:**
+```
+Boot (animação) → Login (senha) → Terminal com 4 puzzles → Carta Final
+```
+ 
+---
+ 
+## 🔐 TELA 1 — Boot
+ 
+Automático. Uma sequência de mensagens aparece simulando um sistema iniciando. Após ~4 segundos, redireciona para o login.
+ 
+**Nada a fazer aqui.** Só aguardar e curtir.
+ 
+---
+ 
+## 🔑 TELA 2 — Login (Senha de Entrada)
+ 
+**Como funciona:** Ela precisa digitar uma senha para entrar no sistema.
+ 
+**A pista está escondida no código-fonte da página** (comentário HTML no topo):
+```
+"A senha do sistema é o nome do jogo que nos fez
+perceber que algumas coisas só funcionam juntos.
+Um jogo sobre dois. Sobre cooperação. Sobre amor."
+Dica: "It Takes ___"
+```
+ 
+**✅ Resposta:** `ittakestwo`
+ 
+**Como ela descobre:** Abrindo o código-fonte (Ctrl+U ou F12 → Elements) e lendo o comentário no `<head>`.
+ 
+---
+ 
+## 🗂️ PUZZLE 1 — Arquivos (Setor A)
+ 
+**Objetivo:** Descobrir a chave completa do sistema combinando duas pistas.
+ 
+### Pista 1 — Arquivo .secret_key
+Ela clica em `.secret_key` na árvore de arquivos e encontra:
+```
+CHAVE_PARCIAL: echo_[FALTA A SEGUNDA METADE]
+```
+ 
+### Pista 2 — Console do Navegador
+Ela abre o DevTools (F12 → Console) e vê:
+```
+[PISTA ENCONTRADA] segunda metade da chave:
+  echo_amor
+```
+ 
+**✅ Resposta:** `echo_amor`
+ 
+**Como inserir:** No campo "PUZZLE 1 — SETOR A" → digitar `echo_amor` → clicar VERIFICAR.
+ 
+---
+ 
+## 🔓 PUZZLE 2 — Decodificador (Setor B)
+ 
+**Objetivo:** Decodificar 4 mensagens criptografadas e combinar numa frase.
+ 
+### Mensagem 1 — Base64
+```
+ZXUgdGUgYW1v
+```
+**✅ Resposta:** `eu te amo`
+ 
+> Como decodificar: use [base64decode.org](https://www.base64decode.org) ou o painel Decodificador da própria página.
+ 
+---
+ 
+### Mensagem 2 — Hexadecimal
+```
+73 65 6d 70 72 65
+```
+**✅ Resposta:** `sempre`
+ 
+> Como decodificar: cada par hex vira uma letra ASCII.
+> 73=s, 65=e, 6d=m, 70=p, 72=r, 65=e → `sempre`
+ 
+---
+ 
+### Mensagem 3 — Binário
+```
+01101010 01110101 01101110 01110100 01101111 01110011
+```
+**✅ Resposta:** `juntos`
+ 
+> Como decodificar: cada grupo de 8 bits vira uma letra.
+> 01101010=j, 01110101=u, 01101110=n, 01110100=t, 01101111=o, 01110011=s → `juntos`
+ 
+---
+ 
+### Mensagem 4 — ROT13
+```
+rh r ibpê
+```
+**✅ Resposta:** `eu e você`
+ 
+> Como decodificar: cada letra avança 13 posições no alfabeto.
+> r→e, h→u, r→e, i→v, b→o, p→c, ê→ê → `eu e você`
+ 
+---
+ 
+### Frase Final (campo de envio)
+Combinar as 4 respostas em ordem:
+ 
+**✅ Resposta aceita:** qualquer frase contendo `eu te amo` + `sempre` + `juntos`
+ 
+Exemplo: `eu te amo sempre juntos eu e você`
+ 
+---
+ 
+## 🐍 PUZZLE 3 — Python (Setor C)
+ 
+**Objetivo:** Executar dois trechos de código mentalmente (ou num Python real) e inserir o resultado.
+ 
+### Desafio A — Função sentimento
+```python
+def sentimento(x, y):
+    return x * y + 1
+ 
+a = sentimento(3, 7)   # 3×7+1 = 22
+b = sentimento(2, 10)  # 2×10+1 = 21
+c = a + b              # 22+21 = 43
+ 
+print(f"resultado: {c}")
+```
+ 
+**✅ Resposta:** `resultado: 43` (ou só `43`)
+ 
+---
+ 
+### Desafio B — Loop com condição
+```python
+mensagem = ["a", "m", "o", "r"]
+chave = {"a": 1, "m": 13, "o": 15, "r": 18}
+ 
+resultado = ""
+for letra in mensagem:
+    resultado += letra if chave[letra] % 2 != 0 else "_"
+ 
+print(resultado)
+```
+ 
+**Raciocínio passo a passo:**
+| Letra | Valor | Ímpar? | Output |
+|-------|-------|--------|--------|
+| a     | 1     | ✅ sim  | `a`    |
+| m     | 13    | ✅ sim  | `m`    |
+| o     | 15    | ✅ sim  | `o`    |
+| r     | 18    | ❌ não  | `_`    |
+ 
+**✅ Resposta:** `amo_`
+ 
+> Setor C é desbloqueado automaticamente quando os dois desafios Python são resolvidos.
+ 
+---
+ 
+## 🔑 PUZZLE 4 — API Key (Setor D)
+ 
+**Objetivo:** Encontrar a chave de API escondida na página.
+ 
+**Como ela descobre:** A dica diz para inspecionar elementos com `data-secret`. No DevTools (F12 → Console), ela digita:
+```javascript
+document.querySelector('[data-secret]').dataset.secret
+```
+ 
+Ou inspeciona o HTML e encontra:
+```html
+<div data-secret="ECHO-API-LOVE-2024-FOREVER" style="display:none"></div>
+```
+ 
+**✅ Resposta:** `ECHO-API-LOVE-2024-FOREVER`
+ 
+---
+ 
+## 💌 TELA FINAL — A Carta
+ 
+Quando os 4 setores são completados, a carta de amor é revelada junto com um grid de memórias do casal.
+ 
+---
+ 
+## ✏️ COMO PERSONALIZAR (OBRIGATÓRIO!)
+ 
+Abra o arquivo HTML, vá até o JavaScript e encontre a função `buildFinalScreen()`. Troque:
+ 
+### Nome dela e seu nome
+```javascript
+const partnerName = 'Amor'; // ← coloque o nome dela
+const yourName = 'Eu';      // ← coloque seu nome
+```
+ 
+### A carta de amor
+O texto entre as crases (`` ` ``) é a carta. Edite à vontade. Use `<em>texto</em>` para destacar em verde brilhante.
+ 
+### O grid de memórias (6 cards)
+```javascript
+const memories = [
+  { icon: '🎮', title: 'It Takes Two', date: 'o jogo que começou tudo', desc: '...' },
+  { icon: '⭐', title: 'Primeira vez', date: 'memória_0001.mem', desc: '...' },
+  // ... mais 4 cards
+];
+```
+ 
+**Substitua pelos momentos reais de vocês!** Exemplos:
+- O lugar do primeiro encontro
+- Uma viagem juntos
+- Uma piada interna
+- O filme favorito de vocês
+---
+ 
+## 🚀 Como Entregar
+ 
+1. **Abra o arquivo** `echo_system.html` no navegador — funciona sem internet (exceto a fonte VT323 do Google Fonts).
+2. **Ou hospede online** gratuitamente no [Netlify Drop](https://app.netlify.com/drop) — arraste o arquivo e ganha um link para enviar pra ela.
+3. **Diga apenas:** *"Tenho um presente. Abra no computador."*
+---
+ 
+## 🗒️ Resumo das Respostas
+ 
+| Etapa | Resposta |
+|-------|----------|
+| Login | `ittakestwo` |
+| Puzzle 1 | `echo_amor` |
+| Puzzle 2 | frase com `eu te amo` + `sempre` + `juntos` |
+| Puzzle 3A | `resultado: 43` |
+| Puzzle 3B | `amo_` |
+| Puzzle 4 | `ECHO-API-LOVE-2024-FOREVER` |
+ 
+---
+ 
+*Que presente lindo. Boa sorte! 🖤*
